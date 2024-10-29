@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudfront-signer
+  labels:
+    app: cloudfront-signer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloudfront-signer
+  template:
+    metadata:
+      labels:
+        app: cloudfront-signer
+    spec:
+      serviceAccountName: cloudfront-signer-sa
+      containers:
+      - name: cloudfront-signer
+        image: mhrocha1997/cloudfront-signer-app:v1.0.2
+        ports:
+        - containerPort: 3000
+        env:
+          - name: AWS_REGION
+            value: us-east-1
+
+          - name: KEY_PAIR_ID
+            valueFrom:
+              secretKeyRef:
+                name: cloudfront-signer-secrets
+                key: KEY_PAIR_ID
+          
+          - name: PRIVATE_KEY_SECRET_ID
+            valueFrom:
+              secretKeyRef:
+                name: cloudfront-signer-secrets
+                key: PRIVATE_KEY_SECRET_ID
+          
+          - name: CLOUDFRONT_DOMAIN
+            valueFrom:
+              secretKeyRef:
+                name: cloudfront-signer-secrets
+                key: CLOUDFRONT_DOMAIN
+        
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256M
+          limits:
+            cpu: 200m
+            memory: 512M
